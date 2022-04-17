@@ -2,8 +2,12 @@ public class Main {
 
     public static void main(String[] args) {
         FunctionResolver resolver = new FunctionResolver();
-        String input = "A1B0C1D0E1F0G1H0", expression = "A.B+C.D+E.F+G.H", order = "ABCDEFGH";
-        BinaryDecisionTree tree = BDD_create(expression, order);
+        InputGenerator generator = new InputGenerator();
+        String dnf = generator.generateDNF(10);
+        String order = generator.generateOrder();
+        String input = generator.generateInput();
+        System.out.println(dnf + " ORDER: " + order + " INPUT: " + input);
+        BinaryDecisionTree tree = BDD_create(dnf, order);
         long stamp = System.currentTimeMillis();
         char result;
         try {
@@ -12,7 +16,7 @@ public class Main {
             result = 'e';
         }
         System.out.println("BDD input resolved in: " + (stamp - System.currentTimeMillis()) + "ms");
-        System.out.println(result + " correct is: " + resolver.getResult(expression, input));
+        System.out.println(result + " correct is: " + resolver.getResult(dnf, input));
     }
 
     public static BinaryDecisionTree BDD_create(String bfunkcia, String poradie) {
