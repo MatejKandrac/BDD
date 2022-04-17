@@ -144,15 +144,18 @@ public class BinaryDecisionTree {
         return nodeCount;
     }
 
-    public boolean use(String input) {
+    public boolean use(String input) throws IllegalStateException {
         return recursiveUse(root, input);
     }
 
-    private boolean recursiveUse(Node start, String inputs) {
+    private boolean recursiveUse(Node start, String inputs) throws IllegalStateException {
         if (start.getValue() != null)
             return start.getValue();
         else {
-            boolean value = inputs.charAt(inputs.indexOf(start.getLabel())+1) == '1';
+            int index = inputs.indexOf(start.getLabel());
+            if (index == -1)
+                throw new IllegalStateException("Invalid input");
+            boolean value = inputs.charAt(index+1) == '1';
             if (value)
                 return recursiveUse(start.getRight(), inputs);
             else
