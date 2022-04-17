@@ -2,10 +2,10 @@ import java.util.*;
 
 public class BinaryDecisionTree {
 
-    private final Node root;
+    private Node root;
     private final Node terminalTrue;
     private final Node terminalFalse;
-    private int nodeCount;
+    private int nodeCount = 1;
     private final int variableCount;
     private final List<Map<String, Node>> nodeLevels;
 
@@ -25,10 +25,10 @@ public class BinaryDecisionTree {
         terminalTrue = new Node(true);
         terminalFalse = new Node(false);
 
-        for (int i = 1; i < order.length()+1; i++)
+        for (int i = 1; i < order.length()+1; i++) {
             createLevel(i, Character.toString(order.charAt(i-1)));
-
-        nodeCount = getNodeCount();
+            simplifyLevel(i - 1);
+        }
     }
 
     private String formatInput(String input) {
@@ -52,15 +52,37 @@ public class BinaryDecisionTree {
         return format.toString();
     }
 
-    private int getNodeCount() {
-        int counter = 0;
-        for (Map<String, Node> nodeLevel : nodeLevels)
-            counter += nodeLevel.size();
-        return counter;
+    void simplifyLevel(int index) {
+        Map<String, Node> layer = nodeLevels.get(index);
+        String[] array = new String[layer.keySet().size()];
+        layer.keySet().toArray(array);
+        for (int i = 0; i < array.length; i++) {
+            Node node = layer.get(array[i]);
+            if (reduceS(node)) {
+                layer.remove(array[i]);
+                nodeCount--;
+            }
+        }
     }
 
-    void simplifyLevel(int index) {
-
+    boolean reduceS(Node node) {
+        if (node.getRight() == node.getLeft()) { // REDUCE S
+            if (node == root) {
+                root = node.getRight();
+                node.getRight().setParent(null);
+            }
+            else {
+                Node parent = node.getParent();
+                if (parent.getRight() == node)
+                    parent.setRight(node.getRight());
+                else
+                    parent.setLeft(node.getRight());
+                node.getRight().setParent(parent);
+                reduceS(parent);
+            }
+            return true;
+        }
+        return false;
     }
 
     private void appendFormat(StringBuilder builder, String target, String expression) {
@@ -105,8 +127,8 @@ public class BinaryDecisionTree {
                         positive.append("+");
                     if (negative.length() != 0)
                         negative.append("+");
-                    positive.append(s);
-                    negative.append(s);
+                    positive.append(s1);
+                    negative.append(s1);
                 }
             }
             Node parent = layerBefore.get(s);
@@ -121,6 +143,7 @@ public class BinaryDecisionTree {
                     Node newNode = new Node(positive.toString(), variable, parent);
                     parent.setRight(newNode);
                     newLayer.put(positive.toString(), newNode);
+                    nodeCount++;
                 }
             } else
                 parent.setRight(terminalTrue);
@@ -136,19 +159,12 @@ public class BinaryDecisionTree {
                     Node newNode = new Node(negative.toString(), variable, parent);
                     parent.setLeft(newNode);
                     newLayer.put(negative.toString(), newNode);
+                    nodeCount++;
                 }
             } else
                 parent.setLeft(terminalTrue);
         }
 
-    }
-
-    private boolean isDuplicate(List<Node> layerNodes, Node node) {
-        for (Node layerNode : layerNodes) {
-            if (layerNode.getParent() == node.getParent())
-                return true;
-        }
-        return false;
     }
 
 }
