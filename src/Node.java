@@ -9,9 +9,8 @@ public class Node {
     private String expression;
     private Boolean value = null;
 
-    public Node(String expression, String label, Node parent) {
+    public Node(String expression, Node parent) {
         this.expression = expression;
-        this.label = label;
         this.parent = parent;
     }
 
@@ -41,10 +40,6 @@ public class Node {
         this.right = right;
     }
 
-    public String getExpression() {
-        return expression;
-    }
-
     public void setValue(boolean value) {
         this.value = value;
     }
@@ -55,5 +50,17 @@ public class Node {
 
     public void setParent(Node parent) {
         this.parent = parent;
+    }
+
+    public void setLabel(String variable) {
+        label =  variable;
+    }
+
+    public Boolean getValue() {
+        return value;
+    }
+
+    public String getLabel() {
+        return label;
     }
 }

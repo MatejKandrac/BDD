@@ -6,13 +6,10 @@ public class BinaryDecisionTree {
     private final Node terminalTrue;
     private final Node terminalFalse;
     private int nodeCount = 1;
-    private final int variableCount;
     private final List<Map<String, Node>> nodeLevels;
 
     public BinaryDecisionTree(String binaryFunction, String order) {
         nodeLevels = new ArrayList<>();
-        variableCount = order.length();
-
 
         String expression = formatInput(binaryFunction);
 
@@ -56,12 +53,10 @@ public class BinaryDecisionTree {
         Map<String, Node> layer = nodeLevels.get(index);
         String[] array = new String[layer.keySet().size()];
         layer.keySet().toArray(array);
-        for (int i = 0; i < array.length; i++) {
-            Node node = layer.get(array[i]);
-            if (reduceS(node)) {
-                layer.remove(array[i]);
-                nodeCount--;
-            }
+        for (String s : array) {
+            Node node = layer.get(s);
+            if (reduceS(node))
+                layer.remove(s);
         }
     }
 
@@ -80,20 +75,10 @@ public class BinaryDecisionTree {
                 node.getRight().setParent(parent);
                 reduceS(parent);
             }
+            nodeCount--;
             return true;
         }
         return false;
-    }
-
-    private void appendFormat(StringBuilder builder, String target, String expression) {
-        if (builder.length() != 0)
-            builder.append("+");
-        if (target.startsWith(expression))
-            builder.append(target.substring(expression.length() + (target.length() > expression.length() ? 1 : 0)));
-        else if (target.endsWith(expression))
-            builder.append(target, 0, target.length() - (expression.length() + 2));
-        else
-            builder.append(target.replace(expression+".", ""));
     }
 
     void createLevel(int level, String variable) {
@@ -104,67 +89,74 @@ public class BinaryDecisionTree {
         for (String s : layerBefore.keySet()) {
 
             String[] split = s.split("\\+");
-            StringBuilder positive = null;
-            StringBuilder negative = null;
+            ExpressionBuilder positive = new ExpressionBuilder();
+            ExpressionBuilder negative = new ExpressionBuilder();
 
             for (String s1 : split) {
-                if (s1.contains("!"+variable)){
-                    if (negative == null)
-                        negative = new StringBuilder();
-                    appendFormat(negative, s1, "!"+variable);
-                }
-                else if (s1.contains(variable)){
-                    if (positive == null)
-                        positive = new StringBuilder();
-                    appendFormat(positive, s1, variable);
-                }
+                if (s1.contains("!"+variable))
+                    negative.appendFormat(s1, "!"+variable);
+                else if (s1.contains(variable))
+                    positive.appendFormat(s1, variable);
                 else {
-                    if (positive == null)
-                        positive = new StringBuilder();
-                    if (negative == null)
-                        negative = new StringBuilder();
-                    if (positive.length() != 0)
-                        positive.append("+");
-                    if (negative.length() != 0)
-                        negative.append("+");
-                    positive.append(s1);
-                    negative.append(s1);
+                    positive.appendWithCheck(s1);
+                    negative.appendWithCheck(s1);
                 }
             }
             Node parent = layerBefore.get(s);
-            if (positive == null)
+            parent.setLabel(variable);
+            if (positive.isNotHandled())
                 parent.setRight(terminalFalse);
-            else if (positive.length() > 0) {
-                if (newLayer.containsKey(positive.toString())){
+            else if (positive.isAlwaysTrue())
+                parent.setRight(terminalTrue);
+            else {
+                if (newLayer.containsKey(positive.toString())){ //REDUCE I
                     Node noDuplicate = newLayer.get(positive.toString());
                     parent.setRight(noDuplicate);
                 }
                 else {
-                    Node newNode = new Node(positive.toString(), variable, parent);
+                    Node newNode = new Node(positive.toString(), parent);
                     parent.setRight(newNode);
                     newLayer.put(positive.toString(), newNode);
                     nodeCount++;
                 }
-            } else
-                parent.setRight(terminalTrue);
+            }
 
-            if (negative == null)
+            if (negative.isNotHandled())
                 parent.setLeft(terminalFalse);
-            else if (negative.length() > 0) {
-                if (newLayer.containsKey(negative.toString())){
+            else if (negative.isAlwaysTrue())
+                parent.setLeft(terminalTrue);
+            else {
+                if (newLayer.containsKey(negative.toString())){ //REDUCE I
                     Node noDuplicate = newLayer.get(negative.toString());
                     parent.setLeft(noDuplicate);
                 }
                 else {
-                    Node newNode = new Node(negative.toString(), variable, parent);
+                    Node newNode = new Node(negative.toString(), parent);
                     parent.setLeft(newNode);
                     newLayer.put(negative.toString(), newNode);
                     nodeCount++;
                 }
-            } else
-                parent.setLeft(terminalTrue);
+            }
         }
-
     }
 
+    public int getNodeCount() {
+        return nodeCount;
+    }
+
+    public boolean use(String input) {
+        return recursiveUse(root, input);
+    }
+
+    private boolean recursiveUse(Node start, String inputs) {
+        if (start.getValue() != null)
+            return start.getValue();
+        else {
+            boolean value = inputs.charAt(inputs.indexOf(start.getLabel())+1) == '1';
+            if (value)
+                return recursiveUse(start.getRight(), inputs);
+            else
+                return recursiveUse(start.getLeft(), inputs);
+        }
+    }
 }
