@@ -1,17 +1,15 @@
 import java.util.*;
 
-public class BinaryDecisionTree {
-
+public class BinaryDecisionDiagram {
     private Node root;
     private final Node terminalTrue;
     private final Node terminalFalse;
-    private int nodeCount = 1;
+    private int nodeCount = 3;
     private final List<Map<String, Node>> nodeLevels;
-
-    public BinaryDecisionTree(String binaryFunction, String order) {
+    public BinaryDecisionDiagram(String binaryFunction, String order) {
         nodeLevels = new ArrayList<>();
 
-        String expression = formatInput(binaryFunction);
+        String expression = ExpressionBuilder.formatInput(binaryFunction);
 
         root = new Node(expression, order.charAt(0), null);
 
@@ -26,27 +24,14 @@ public class BinaryDecisionTree {
             createLevel(i, Character.toString(order.charAt(i-1)));
             simplifyLevel(i - 1);
         }
-    }
 
-    private String formatInput(String input) {
-        StringBuilder format = new StringBuilder();
-        String[] expressions = input.split("\\+");
-        for (int i = 0; i < expressions.length; i++) {
-            String[] variables = expressions[i].split("\\.");
+//        Map<String, Node> lastLevel = nodeLevels.get(nodeLevels.size()-1);
+//        if (lastLevel.size() > 0)
+//            for (String s : lastLevel.keySet())
+//                lastLevel.get(s).setLabel(Character.toString(order.charAt(order.length()-1)));
 
-            Arrays.sort(variables, Comparator.comparingInt(o -> (o.length() == 2 ? o.charAt(1) : o.charAt(0))));
-
-            for (int i1 = 0; i1 < variables.length; i1++) {
-                format.append(variables[i1]);
-                if (i1 < variables.length-1)
-                    format.append(".");
-            }
-
-            if (i < expressions.length-1)
-                format.append("+");
-
-        }
-        return format.toString();
+        if (root == terminalFalse || root == terminalTrue)
+            nodeCount--;
     }
 
     void simplifyLevel(int index) {
@@ -109,7 +94,7 @@ public class BinaryDecisionTree {
             else if (positive.isAlwaysTrue())
                 parent.setRight(terminalTrue);
             else {
-                if (newLayer.containsKey(positive.toString())){ //REDUCE I
+                if (newLayer.containsKey(positive.toString())){ //REDUCE I TODO vypocitat podstrom
                     Node noDuplicate = newLayer.get(positive.toString());
                     parent.setRight(noDuplicate);
                 }
@@ -144,18 +129,15 @@ public class BinaryDecisionTree {
         return nodeCount;
     }
 
-    public boolean use(String input) throws IllegalStateException {
+    public boolean use(String input) {
         return recursiveUse(root, input);
     }
 
-    private boolean recursiveUse(Node start, String inputs) throws IllegalStateException {
+    private boolean recursiveUse(Node start, String inputs) {
         if (start.getValue() != null)
             return start.getValue();
         else {
-            int index = inputs.indexOf(start.getLabel());
-            if (index == -1)
-                throw new IllegalStateException("Invalid input");
-            boolean value = inputs.charAt(index+1) == '1';
+            boolean value = inputs.charAt((start.getLabel().charAt(0) - 'A')) == '1';
             if (value)
                 return recursiveUse(start.getRight(), inputs);
             else

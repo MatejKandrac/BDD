@@ -1,3 +1,5 @@
+package input;
+
 public class FunctionResolver {
 
     public char getResult(String expression, String input){
@@ -12,7 +14,7 @@ public class FunctionResolver {
         for (String s : expressionPart.split("\\.")) {
             boolean inverted = s.charAt(0) == '!';
             char variable = s.charAt(inverted ? 1 : 0);
-            char inputValue = input.charAt(input.indexOf(variable)+1);
+            char inputValue = input.charAt(variable-'A');
             if ((inverted ? '0' : '1') != inputValue)
                 return false;
         }
