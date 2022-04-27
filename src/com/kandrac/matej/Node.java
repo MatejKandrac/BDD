@@ -1,25 +1,33 @@
+package com.kandrac.matej;
+
 public class Node {
 
     private Node left;
     private Node right;
     private Node parent;
 
+    /**
+     * Label refers to a variable this node divides.
+     */
     private String label;
+    /**
+     * Value is set to true or false if the node is a terminal node.
+     */
+    private final Boolean value;
 
-    private String expression;
-    private Boolean value = null;
-
-    public Node(String expression, Node parent) {
-        this.expression = expression;
+    /**
+     * Constructor for simple nodes within tree
+     * @param parent parent node of this node (root is null)
+     */
+    public Node(Node parent) {
         this.parent = parent;
+        value = null;
     }
 
-    public Node(String expression, char label, Node parent) {
-        this.expression = expression;
-        this.label = Character.toString(label);
-        this.parent = parent;
-    }
-
+    /**
+     * Constructor for terminal nodes
+     * @param value true or false terminal value
+     */
     public Node(boolean value){
         this.value = value;
     }
@@ -38,10 +46,6 @@ public class Node {
 
     public void setRight(Node right) {
         this.right = right;
-    }
-
-    public void setValue(boolean value) {
-        this.value = value;
     }
 
     public Node getParent() {
