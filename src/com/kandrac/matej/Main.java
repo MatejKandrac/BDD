@@ -4,32 +4,54 @@ import com.kandrac.matej.testing.Tester;
 
 public class Main {
 
-    private static final int VARIABLE_COUNT = 25;
+    private static final int MIN_VARIABLES_COUNT = 13;
+    private static final int MAX_VARIABLES_COUNT = 20;
+    private static final int NUM_OF_FUNCTIONS = 100;
 
     public static void main(String[] args) {
         Tester tester = new Tester();
 
-        String dnf = tester.generateDNF(VARIABLE_COUNT);
-        String order = tester.generateOrder(VARIABLE_COUNT);
+        // We test variables from 13 to 19
+        for (int i = MIN_VARIABLES_COUNT; i < MAX_VARIABLES_COUNT; i++) {
 
-        BinaryDecisionDiagram tree = BDD_create(dnf, order);
+            // Save total reduction rate and total time in MS
+            long reductionRate = 0;
+            long totalMsCreate = 0;
+            long totalMsUse = 0;
 
-        System.out.println(dnf + "\nORDER: " + order + "\nNUM OF NODES: " + tree.getNodeCount() + " TOTAL REDUCED: " + tree.getReducedNodes());
+            // We create 100 different cases of DNF functions
+            for (int j = 0; j < NUM_OF_FUNCTIONS; j++) {
+                // generate input
+                String dnf = tester.generateDNF(i);
+                String order = tester.generateOrder(i);
 
-        tester.checkValid(tree, VARIABLE_COUNT, dnf);
+//                System.out.println(dnf + "\nORDER: " + order);
 
-        System.out.println("Finished");
+                // Save timestamp of current time in MS
+                long timeStamp = System.currentTimeMillis();
+                BinaryDecisionDiagram tree = BDD_create(dnf, order);
+                // Add ms to total time
+                totalMsCreate += System.currentTimeMillis() - timeStamp;
+                // Add to total reduce ratio
+                reductionRate += tree.getReducedNodes() / tree.getNodeCount();
+                // Run tests and add time to total time
+                totalMsUse += tester.checkValid(tree, i, dnf);
+            }
+
+            // Print results
+            System.out.println("Finished for " + i + " variables");
+            System.out.println("Average time (create): " + (totalMsCreate / NUM_OF_FUNCTIONS) + "ms");
+            System.out.println("Average time (use): " + (totalMsUse / NUM_OF_FUNCTIONS) + "ms");
+            System.out.println("Average reduction rate: " + (reductionRate / NUM_OF_FUNCTIONS) + "\n");
+        }
     }
 
     public static BinaryDecisionDiagram BDD_create(String bfunkcia, String poradie) {
-        long stamp = System.currentTimeMillis();
-        BinaryDecisionDiagram binaryDecisionTree = new BinaryDecisionDiagram(bfunkcia, poradie);
-        System.out.println("Created tree in: " + (System.currentTimeMillis() - stamp) + "ms");
-        return binaryDecisionTree;
+        return new BinaryDecisionDiagram(bfunkcia, poradie);
     }
 
-    public static char BDD_use(BinaryDecisionDiagram tree, String vstupy){
-        return tree.use(vstupy) ? '1' : '0';
+    public static char BDD_use(BinaryDecisionDiagram bdd, String vstupy){
+        return bdd.use(vstupy) ? '1' : '0';
     }
 
 }

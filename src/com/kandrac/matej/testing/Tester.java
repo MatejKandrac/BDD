@@ -58,8 +58,10 @@ public class Tester {
      * @param tree binary decision diagram
      * @param variableCount number of variables
      * @param dnf expression
+     * @return Total time in ms of BDD_use function
      */
-    public void checkValid(BinaryDecisionDiagram tree, int variableCount, String dnf) {
+    public long checkValid(BinaryDecisionDiagram tree, int variableCount, String dnf) {
+        long totalTime = 0;
         FunctionResolver resolver = new FunctionResolver();
         int rows = (int) Math.pow(2, variableCount);
 
@@ -71,11 +73,16 @@ public class Tester {
             for (int j=variableCount-1; j>=0; j--) {
                 builder.append((i/(int) Math.pow(2, j))%2);
             }
+
+            long timeStamp = System.currentTimeMillis();
             treeResult = BDD_use(tree, builder.toString());
+            totalTime += System.currentTimeMillis() - timeStamp;
+
             functionResult = resolver.getResult(dnf, builder.toString());
             if (treeResult != functionResult)
                 System.out.println("Invalid result for input: " + builder + " Tree is: " + treeResult + " where function is: " + functionResult);
             builder = new StringBuilder();
         }
+        return totalTime;
     }
 }
